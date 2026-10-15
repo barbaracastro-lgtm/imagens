@@ -48,7 +48,7 @@ def main():
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         s.bind((HOST, PORT))
         s.listen()
-        print(f"Servidor aguardando conexoes em {HOST}:{PORT}")
+print(f"Servidor iniciado na porta {PORT}. Aguardando conexoes...")
         while True:
             conn, addr = s.accept()
             t = threading.Thread(target=atender_cliente, args=(conn, addr), daemon=True)
