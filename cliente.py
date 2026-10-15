@@ -9,6 +9,7 @@ CAMINHO_IMAGEM = 'imagem_teste.jpeg'  # altere para o caminho da sua imagem
 
 
 def main():
+    print("Iniciando cliente...")
     # Lê a imagem do disco e codifica em JPEG
     img = Imagem.ler(CAMINHO_IMAGEM)
     dados = img.codificar()
