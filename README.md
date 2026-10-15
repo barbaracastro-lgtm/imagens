@@ -2,91 +2,72 @@
 
 **Disciplina:** Informática Industrial – ENE118  
 **Integrantes:**
-
-* Barbara Castro – \[sua matrícula]
-* Barbara Salgado – \[matrícula do colega]
+- Barbara Castro – 202169030B
+- Barbara Salgado – [ ficticio ]
 
 **Divisão de tarefas:**
+- Barbara Castro: `imagem.py` e `cliente.py` (branch `cliente`)
+- Barbara Salgado: `protocolo.py` e `servidor.py` (branch `servidor`)
 
-* Barbara Castro: implementou `imagem.py` e `cliente.py` (branch `cliente`)
-* Barbara Salgado: implementou `protocolo.py` e `servidor.py` (branch `servidor`)
-
-\---
+---
 
 ## Instalação
 
 ```bash
-python -m venv venv
-source venv/bin/activate        # Linux/macOS
-# venv\\Scripts\\activate          # Windows
-
 pip install -r requirements.txt
 ```
 
-\---
+---
 
 ## Como executar
 
-Em um terminal, inicie o servidor:
-
+Abre um terminal e roda o servidor:
 ```bash
-python servidor.py
+py servidor.py
 ```
 
-Em outro terminal, execute o cliente com uma imagem:
-
+Abre outro terminal e roda o cliente:
 ```bash
-python cliente.py
+py cliente.py
 ```
 
-> \*\*Atenção:\*\* edite a constante `CAMINHO\_IMAGEM` em `cliente.py` para apontar para a imagem desejada.
+---
 
-\---
-
-## Resultados dos testes
+## Testes
 
 ### Teste 1 – Imagem com face
-
-O servidor detectou a face e devolveu a imagem com retângulo verde desenhado.  
-!\[Imagem com face](tests/com\_face.png)
+O servidor detectou a face e retornou a imagem com retângulo verde desenhado ao redor.  
+![com face](tests/com_face.png)
 
 ### Teste 2 – Imagem sem face
+Nenhuma face detectada, a imagem voltou sem nenhum retângulo.  
+![sem face](tests/sem_face.png)
 
-O servidor devolveu a imagem sem retângulos, pois nenhuma face foi encontrada.  
-!\[Imagem sem face](tests/sem\_face.png)
+### Teste 3 – Dois clientes ao mesmo tempo
+Coloquei um `time.sleep(5)` temporário no início do `atender_cliente`. Rodei dois clientes em terminais separados e o servidor mostrou dois "Iniciou" antes de qualquer "Terminou", confirmando que as threads rodam em paralelo.  
+![dois clientes](tests/dois_clientes.png)
 
-### Teste 3 – Dois clientes simultâneos
+---
 
-Com `time.sleep(5)` temporário no início de `atender\_cliente`, dois clientes foram
-executados em terminais separados. O terminal do servidor exibiu dois "Iniciou" antes
-do primeiro "Terminou", confirmando o atendimento concorrente via threads.  
-!\[Dois clientes](tests/dois\_clientes.png)
+## Perguntas
 
-\---
+**1. Onde o tamanho da imagem é enviado e como o laço sabe que recebeu tudo?**
 
-## Respostas às perguntas
+Em `protocolo.py`, a `enviar_mensagem` empacota o tamanho em 4 bytes big-endian com `struct.pack('>I', tamanho)` e manda junto com os dados da imagem usando `sendall`. Na hora de receber, a `_ler_bytes` fica num loop acumulando o que chega até o total bater, porque o `recv` pode devolver menos do que o esperado de uma vez só.
 
-**1. Onde o tamanho da imagem é enviado e como o laço sabe que recebeu tudo?**  
-Em `protocolo.py`, a função `enviar\_mensagem` empacota o tamanho dos dados em 4 bytes
-big-endian (`struct.pack('>I', tamanho)`) e os envia junto com o conteúdo via `sendall`.
-A função `\_ler\_bytes` acumula chunks em um laço `while` até que `len(dados) == total`,
-garantindo a leitura completa mesmo que `recv` retorne menos bytes do que o esperado.
+**2. Onde a thread é criada e por que o servidor atende dois clientes ao mesmo tempo?**
 
-**2. Onde a thread é criada e por que o servidor pode atender outro cliente enquanto a primeira espera?**  
-Em `servidor.py`, na função `main`, após o `s.accept()` é criada uma `threading.Thread`
-apontando para `atender\_cliente`. Como cada cliente roda em uma thread separada, o laço
-de `accept` volta a esperar outra conexão imediatamente, sem bloquear no processamento
-do cliente anterior.
+Em `servidor.py`, depois do `s.accept()`, criei uma `threading.Thread` apontando pra `atender_cliente` e chamei `.start()`. O servidor não trava esperando aquele cliente terminar, volta pro `accept` e já pode pegar a próxima conexão.
 
-**3. Commit de cada integrante e diferença entre commit, push e PR:**
+**3. Um commit de cada integrante e a diferença entre commit, push e PR:**
 
-* Commit de Barbara Castro: `\[7fc0afb]` – "Adiciona imagem.py com classe Imagem e métodos ler/codificar/decodificar"
-* Commit de Barbara Salgado: `\[c7f0f81]` – "Adiciona protocolo.py com enviar\_mensagem e receber\_mensagem"
+- Commit de Barbara Castro (`7fc0afb`): "Configura caminho da imagem no cliente" – definiu a constante `CAMINHO_IMAGEM` em `cliente.py`.
+- Commit de Barbara Salgado (`c7f0f81`): "Adiciona mensagem de inicio no servidor" – adicionou o print de status na thread do servidor.
 
-**Diferença:** `commit` salva as alterações no histórico local do repositório.
-`push` envia os commits locais para o repositório remoto (GitHub). O **PR (Pull Request)**
-é uma solicitação para integrar uma branch ao `main`, permitindo revisão antes da fusão,
-sem squash, preservando o histórico de commits.
+`commit` salva as mudanças no repositório local. `push` envia esses commits pro GitHub. O **PR** é a forma de pedir pra integrar uma branch no `main`, mantendo o histórico completo sem squash.
 
-\---
+---
 
+## Uso de IA
+
+Foi feito o uso de IA para ajudar a montar o laço de leitura completa em `protocolo.py` (a função `_ler_bytes`) e também pra me orientar nos comandos do terminal — como rodar o servidor e o cliente em janelas separadas, resolver erros de instalação do opencv e executar os testes. Precisei entender e conferir o trecho que acumula os chunks do `recv` até completar o total esperado, testando com imagens reais pra garantir que funcionava corretamente.
